@@ -202,6 +202,10 @@ impl Runtime {
         let mut tools = crate::tools::default_toolset(cfg.computer_use, cfg.browser);
         tools.add(Arc::new(UseSkill));
         crate::brain::register(&mut tools);
+        // Ekran/tarayıcı araçları açıksa imleç katmanını önceden başlat (ilk tıklamada gecikme olmasın)
+        if cfg.cursor_overlay && (cfg.browser || cfg.computer_use) {
+            std::thread::spawn(crate::overlay::warm);
+        }
         let hub = crate::mcp::McpHub::start_all().await;
         hub.register_tools(&mut tools).await;
         let mcp_errors = hub.errors.clone();

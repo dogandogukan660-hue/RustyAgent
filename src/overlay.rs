@@ -83,6 +83,12 @@ pub fn emit(agent: &str, x: f64, y: f64, kind: &str, text: Option<&str>) {
     }
 }
 
+/// Katmanı önceden başlatır: pencere açılışı 1-2 sn sürdüğü için ilk tıklamanın imleci kaçmasın.
+/// Görünür bir şey çizmez (gizli bir "warm" olayı gönderir).
+pub fn warm() {
+    emit("__warm", 0.0, 0.0, "warm", None);
+}
+
 pub fn hide(agent: &str) {
     emit(agent, 0.0, 0.0, "hide", None);
 }
@@ -136,6 +142,10 @@ impl OverlayApp {
             let kind = e["kind"].as_str().unwrap_or("move");
             if kind == "quit" {
                 std::process::exit(0);
+            }
+            // Ön başlatma olayı: hiçbir imleç çizilmez
+            if kind == "warm" {
+                continue;
             }
             let p = egui::pos2(
                 ((e["x"].as_f64().unwrap_or(0.0) - self.origin.0) / ppp as f64) as f32,

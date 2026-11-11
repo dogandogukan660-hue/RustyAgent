@@ -257,6 +257,15 @@ async fn page_for(session: &str) -> Result<Arc<Page>> {
     pages.insert(session.to_string(), page.clone());
     let ids: Vec<String> = pages.values().map(|p| p.target_id.clone()).collect();
     drop(pages);
+    // Tarayıcı açılırken oluşan boş başlangıç sayfası agent pencerelerinin önüne geçmesin
+    if let Ok(r) = b.root.call("Target.getTargets", json!({})).await {
+        for t in r["targetInfos"].as_array().cloned().unwrap_or_default() {
+            let id = t["targetId"].as_str().unwrap_or("").to_string();
+            if t["type"] == "page" && t["url"] == "about:blank" && !ids.contains(&id) {
+                let _ = b.root.call("Target.closeTarget", json!({"targetId": id})).await;
+            }
+        }
+    }
     tile_windows(&b, &ids).await;
     Ok(page)
 }

@@ -2,3 +2,4 @@
 .rustyagent/
 *.lnk
 
+/dist
